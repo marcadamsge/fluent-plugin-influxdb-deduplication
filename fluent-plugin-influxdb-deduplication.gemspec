@@ -4,6 +4,7 @@ $:.push File.expand_path('../lib', __FILE__)
 Gem::Specification.new do |gem|
   gem.name = "fluent-plugin-influxdb-deduplication"
   gem.description = "Filter plugin for deduplicating records for influxdb"
+  gem.homepage = "https://github.com/marcadamsge/fluent-plugin-influxdb-deduplication"
   gem.summary = gem.description
   gem.version = File.read("VERSION").strip
   gem.authors = ["Marc Adams"]
