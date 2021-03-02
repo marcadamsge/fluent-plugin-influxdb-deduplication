@@ -41,6 +41,8 @@ module Fluent
     def filter(tag, time, record)
       if @time
         time_deduplication(time, record)
+      else
+        tag_deduplication(time, record)
       end
     end
 
@@ -78,6 +80,42 @@ module Fluent
         @sequence = 0
         @last_timestamp = input_time.sec
         record[@time.key] = nano_time
+        if @order_key
+          record[@order_key] = true
+        end
+      end
+
+      record
+    end
+
+    def tag_deduplication(time, record)
+      if time.is_a?(Integer)
+        input_time = time
+      elsif time.is_a?(Fluent::EventTime)
+        input_time = time.sec * 1000000000 + time.nsec
+      else
+        @log.error("unreadable time")
+        return nil
+      end
+
+      if input_time < @last_timestamp
+        @log.debug("out of sequence timestamp")
+        if @order_key
+          record[@order_key] = false
+        else
+          @log.debug("out of order record dropped")
+          return nil
+        end
+      elsif input_time == @last_timestamp
+        @sequence = @sequence + 1
+        record[@tag.key] = @sequence
+        if @order_key
+          record[@order_key] = true
+        end
+      else
+        @sequence = 0
+        @last_timestamp = input_time
+        record[@tag.key] = 0
         if @order_key
           record[@order_key] = true
         end
