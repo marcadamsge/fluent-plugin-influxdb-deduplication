@@ -106,6 +106,35 @@ class InfluxdbDeduplicationFilterTest < Test::Unit::TestCase
                  ], d.filtered
   end
 
+  def test_time_in_sequence_integer_time
+    d = create_driver %[
+      <time>
+        key time_key
+      </time>
+    ]
+
+    time0 = 1613910640
+    time1 = 1613910643
+
+    d.run(default_tag: @tag) do
+      d.feed(time0, { "k1" => 0 })
+      d.feed(time0, { "k1" => 1 })
+      d.feed(time0, { "k1" => 2 })
+      d.feed(time1, { "k1" => 3 })
+      d.feed(time1, { "k1" => 4 })
+    end
+
+    assert_equal d.instance.instance_variable_get(:@last_timestamp), 1613910643
+
+    assert_equal [
+                   [time0, { "k1" => 0, "time_key" => 1613910640000000000 }],
+                   [time0, { "k1" => 1, "time_key" => 1613910640000000001 }],
+                   [time0, { "k1" => 2, "time_key" => 1613910640000000002 }],
+                   [time1, { "k1" => 3, "time_key" => 1613910643000000000 }],
+                   [time1, { "k1" => 4, "time_key" => 1613910643000000001 }]
+                 ], d.filtered
+  end
+
   def test_time_out_of_sequence_dropped
     d = create_driver %[
       <time>
@@ -204,6 +233,37 @@ class InfluxdbDeduplicationFilterTest < Test::Unit::TestCase
       d.feed(time1, { "k1" => 3 })
       d.feed(time1, { "k1" => 4 })
     end
+
+    assert_equal d.instance.instance_variable_get(:@last_timestamp), 1613910643000000000
+
+    assert_equal [
+                   [time0, { "k1" => 0, "tag_key" => 0 }],
+                   [time0, { "k1" => 1, "tag_key" => 1 }],
+                   [time0, { "k1" => 2, "tag_key" => 2 }],
+                   [time1, { "k1" => 3, "tag_key" => 0 }],
+                   [time1, { "k1" => 4, "tag_key" => 1 }]
+                 ], d.filtered
+  end
+
+  def test_tag_in_sequence_integer_time
+    d = create_driver %[
+      <tag>
+        key tag_key
+      </tag>
+    ]
+
+    time0 = 1613910640
+    time1 = 1613910643
+
+    d.run(default_tag: @tag) do
+      d.feed(time0, { "k1" => 0 })
+      d.feed(time0, { "k1" => 1 })
+      d.feed(time0, { "k1" => 2 })
+      d.feed(time1, { "k1" => 3 })
+      d.feed(time1, { "k1" => 4 })
+    end
+
+    assert_equal d.instance.instance_variable_get(:@last_timestamp), 1613910643
 
     assert_equal [
                    [time0, { "k1" => 0, "tag_key" => 0 }],
