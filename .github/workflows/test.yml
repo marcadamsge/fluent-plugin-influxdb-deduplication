@@ -1,7 +1,6 @@
 name: test
 on:
   - push
-  - pull_request
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -12,3 +11,4 @@ jobs:
           ruby-version: 2.6
           bundler-cache: true
       - run: bundle exec rake test
+
