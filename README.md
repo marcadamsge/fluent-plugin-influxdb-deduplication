@@ -1,7 +1,7 @@
 # [Fluentd](https://www.fluentd.org/) filter plugin to deduplicate records for InfluxDB
 
 A filter plugin that implements the deduplication techniques described in
-the [InfluxDB doc](https://docs.influxdata.com/influxdb/v2.0/write-data/best-practices/duplicate-points/).
+the [InfluxDB doc](https://docs.influxdata.com/influxdb/v2.2/write-data/best-practices/duplicate-points/).
 
 ## Installation
 
